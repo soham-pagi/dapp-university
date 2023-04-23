@@ -94,7 +94,7 @@ class App extends Component {
       });
   }
 
-  purchaseProduct(id=1, price=10) {
+  purchaseProduct(id = 1, price = 10) {
     // this.setState({ loading: true });
     window.marketplace
       .purchaseProduct(id)
@@ -108,7 +108,7 @@ class App extends Component {
       })
       .catch((error) => {
         console.error(error);
-        this.setState({ loading: false });
+        // this.setState({ loading: false });
         // transaction failed, handle error
       });
   }
