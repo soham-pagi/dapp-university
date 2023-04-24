@@ -12,50 +12,34 @@ import Marketplace from "../abis/Marketplace.json";
 
 class App extends Component {
   async componentWillMount() {
-    await this.loadWeb3();
-    await this.loadBlockchainData();
+    await this.connectWallet();
   }
 
-  async loadWeb3() {
-    window.addEventListener("load", async () => {
-      if (window.ethereum) {
-        window.provider = new ethers.providers.Web3Provider(window.ethereum);
-        // const accounts = await window.ethereum.request({
-        //   method: "eth_requestAccounts",
-        // });
-        // console.log({ accounts });
-      } else {
-        window.alert(
-          "Non-Ethereum browser detected. You should consider trying MetaMask!"
-        );
-      }
-    });
-  }
+  async connectWallet() {
+    try {
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      await provider.send("eth_requestAccounts", []);
+      const wallet = provider.getSigner();
 
-  async loadBlockchainData() {
-    const accounts = await window.ethereum.request({
-      method: "eth_requestAccounts",
-    });
+      const ethAddress = Marketplace.networks[5777].address;
 
-    this.setState({ account: accounts[0] });
-
-    const networkId = await window.ethereum.networkVersion;
-    const networkData = Marketplace.networks[networkId];
-
-    if (networkData) {
       const marketplace = new ethers.Contract(
-        networkData.address,
+        ethAddress,
         Marketplace.abi,
-        window.provider
+        provider
       );
+
+      const marketplaceWithSigner = marketplace.connect(wallet);
+
+      this.setState({ marketplace, marketplaceWithSigner });
 
       window.marketplace = marketplace;
-      this.setState({ marketplace });
+      window.marketplaceWithSigner = marketplaceWithSigner;
+
+      // set loading false
       this.setState({ loading: false });
-    } else {
-      window.alert(
-        "Marketplace contract is not deployed to the detected network."
-      );
+    } catch (err) {
+      console.log(err);
     }
   }
 
@@ -71,20 +55,29 @@ class App extends Component {
     this.createProduct = this.createProduct.bind(this);
     this.productCount = this.productCount.bind(this);
     this.purchaseProduct = this.purchaseProduct.bind(this);
+    this.listProducts = this.listProducts.bind(this);
+  }
+
+  async productCount() {
+    const count = await this.state.marketplace.productCount();
+    // console.log(count.toNumber());
+    return count.toNumber();
+  }
+
+  async listProducts() {
+    const count = await this.productCount();
+
+    for (let i = 1; i <= count; i++) {
+      const { name, price } = await this.state.marketplace.products(i);
+      const priceInETH = ethers.utils.formatEther(price);
+      console.log(name, priceInETH);
+    }
   }
 
   createProduct(name, price) {
     this.setState({ loading: true });
 
-    // this.state.marketplace
-    //   .createProduct(name, price)
-    //   .send({ from: this.state.account })
-    //   .once("receipt", (receipt) => {
-    //     this.setState({ loading: false });
-    //   });
-
-    this.state.marketplace
-      .connect(window.provider.getSigner())
+    this.state.marketplaceWithSigner
       .createProduct(name, price)
       .then((transaction) => {
         transaction.wait().then((receipt) => {
@@ -96,7 +89,7 @@ class App extends Component {
 
   purchaseProduct(id = 1, price = 10) {
     // this.setState({ loading: true });
-    window.marketplace
+    this.state.marketplace
       .purchaseProduct(id)
       .then((tx) => {
         return tx.wait();
@@ -113,22 +106,24 @@ class App extends Component {
       });
   }
 
-  async productCount() {
-    const pc = await this.state.marketplace.productCount();
-    const n = pc.toNumber();
-
-    console.log(n);
-    console.log(this.state.marketplace);
-  }
-
   render() {
     return (
       <div>
         <Navbar account={this.state.account} />
         <div className="container-fluid mt-5">
           <div className="row">
-            <div onClick={this.productCount}>{"hello"}</div>
-            <div onClick={this.purchaseProduct}>{"purchase"}</div>
+            <div
+              style={{ border: "1px solid red", margin: 10 }}
+              onClick={this.productCount}
+            >
+              Product Count
+            </div>
+            <div
+              style={{ border: "1px solid red", margin: 10 }}
+              onClick={this.listProducts}
+            >
+              List all
+            </div>
             <main role="main" className="col-lf-12 d-flex">
               {this.state.loading ? (
                 <h1>Loading...</h1>
