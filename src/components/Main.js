@@ -62,7 +62,7 @@ class Main extends React.Component {
               <tr key={key}>
                 <th scope="row">1</th>
                 <td>{product.name}</td>
-                <td>{product.price.toString()}</td>
+                <td>{ethers.utils.formatEther(product.price) + " ETH"}</td>
                 <td>{product.owner}</td>
                 <td>
                   <button className="buyButton">Buy</button>

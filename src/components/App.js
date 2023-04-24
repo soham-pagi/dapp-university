@@ -111,9 +111,15 @@ class App extends Component {
         <Navbar account={this.state.account} />
         <div className="container-fluid mt-5">
           <div className="row">
-            <div onClick={this.productCount}>Product Count</div>
-            <button onClick={this.listProducts}>List all</button>
-            <button onClick={this.purchaseProduct}>purchase</button>
+            <div style={{ padding: "0 10px" }} onClick={this.productCount}>
+              Product Count
+            </div>
+            <div style={{ padding: "0 10px" }} onClick={this.listProducts}>
+              List all
+            </div>
+            <div style={{ padding: "0 10px" }} onClick={this.purchaseProduct}>
+              purchase
+            </div>
             <main role="main" className="col-lf-12 d-flex">
               {this.state.loading ? (
                 <h1>Loading...</h1>
