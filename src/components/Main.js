@@ -58,33 +58,17 @@ class Main extends React.Component {
             </tr>
           </thead>
           <tbody id="productList">
-            <tr>
-              <th scope="row">1</th>
-              <td>iPhone x</td>
-              <td>1 Eth</td>
-              <td>0x39C7BC5496f4eaaa1fF75d88E079C22f0519E7b9</td>
-              <td>
-                <button className="buyButton">Buy</button>
-              </td>
-            </tr>
-            <tr>
-              <th scope="row">2</th>
-              <td>Macbook Pro</td>
-              <td>3 eth</td>
-              <td>0x39C7BC5496f4eaaa1fF75d88E079C22f0519E7b9</td>
-              <td>
-                <button className="buyButton">Buy</button>
-              </td>
-            </tr>
-            <tr>
-              <th scope="row">3</th>
-              <td>Airpods</td>
-              <td>0.5 eth</td>
-              <td>0x39C7BC5496f4eaaa1fF75d88E079C22f0519E7b9</td>
-              <td>
-                <button className="buyButton">Buy</button>
-              </td>
-            </tr>
+            {this.props.products.map((product, key) => (
+              <tr key={key}>
+                <th scope="row">1</th>
+                <td>{product.name}</td>
+                <td>{product.price.toString()}</td>
+                <td>{product.owner}</td>
+                <td>
+                  <button className="buyButton">Buy</button>
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>

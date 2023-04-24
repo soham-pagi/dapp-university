@@ -41,6 +41,8 @@ class App extends Component {
     } catch (err) {
       console.log(err);
     }
+
+    this.listProducts();
   }
 
   constructor(props) {
@@ -59,18 +61,28 @@ class App extends Component {
   }
 
   async productCount() {
-    const count = await this.state.marketplace.productCount();
-    // console.log(count.toNumber());
-    return count.toNumber();
+    try {
+      const count = (await this.state.marketplace.productCount()).toNumber();
+      console.log(count);
+    } catch (err) {
+      console.log(err);
+    }
   }
 
   async listProducts() {
-    const count = await this.productCount();
+    const count = (await this.state.marketplace.productCount()).toNumber();
 
-    for (let i = 1; i <= count; i++) {
-      const { name, price } = await this.state.marketplace.products(i);
-      const priceInETH = ethers.utils.formatEther(price);
-      console.log(name, priceInETH);
+    const t = [];
+
+    try {
+      for (let i = 1; i <= count; i++) {
+        const product = await this.state.marketplace.products(i);
+        t.push(product);
+      }
+
+      this.setState({ products: t });
+    } catch (err) {
+      console.log(err);
     }
   }
 
@@ -85,25 +97,12 @@ class App extends Component {
           this.setState({ loading: false });
         });
       });
+
+    this.setState({ loading: false });
   }
 
-  purchaseProduct(id = 1, price = 10) {
-    // this.setState({ loading: true });
-    this.state.marketplace
-      .purchaseProduct(id)
-      .then((tx) => {
-        return tx.wait();
-      })
-      .then((receipt) => {
-        // this.setState({ loading: false });
-        // transaction successful, do something
-        console.log("done tx");
-      })
-      .catch((error) => {
-        console.error(error);
-        // this.setState({ loading: false });
-        // transaction failed, handle error
-      });
+  purchaseProduct(id = 1) {
+    console.log("clicked purchase");
   }
 
   render() {
@@ -112,23 +111,17 @@ class App extends Component {
         <Navbar account={this.state.account} />
         <div className="container-fluid mt-5">
           <div className="row">
-            <div
-              style={{ border: "1px solid red", margin: 10 }}
-              onClick={this.productCount}
-            >
-              Product Count
-            </div>
-            <div
-              style={{ border: "1px solid red", margin: 10 }}
-              onClick={this.listProducts}
-            >
-              List all
-            </div>
+            <div onClick={this.productCount}>Product Count</div>
+            <button onClick={this.listProducts}>List all</button>
+            <button onClick={this.purchaseProduct}>purchase</button>
             <main role="main" className="col-lf-12 d-flex">
               {this.state.loading ? (
                 <h1>Loading...</h1>
               ) : (
-                <Main createProduct={this.createProduct} />
+                <Main
+                  products={this.state.products}
+                  createProduct={this.createProduct}
+                />
               )}
             </main>
           </div>
