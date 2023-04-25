@@ -7,6 +7,7 @@ import Main from "./Main";
 
 // import Web3 from "web3";
 import { ethers } from "ethers";
+import { getParsedEthersError } from "@enzoferey/ethers-error-parser";
 
 import Marketplace from "../abis/Marketplace.json";
 
@@ -20,6 +21,7 @@ class App extends Component {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       await provider.send("eth_requestAccounts", []);
       const wallet = provider.getSigner();
+      window.wallet = wallet;
 
       const ethAddress = Marketplace.networks[5777].address;
 
@@ -70,6 +72,7 @@ class App extends Component {
   }
 
   async listProducts() {
+    console.log("clicked");
     const count = (await this.state.marketplace.productCount()).toNumber();
 
     const t = [];
@@ -101,8 +104,19 @@ class App extends Component {
     this.setState({ loading: false });
   }
 
-  purchaseProduct(id = 1) {
-    console.log("clicked purchase");
+  purchaseProduct(id, price) {
+    const options = {
+      value: ethers.utils.parseEther(price.toString()).toString(),
+    };
+
+    this.state.marketplaceWithSigner
+      .purchaseProduct(id, options)
+      .then((tx) => tx.wait())
+      .then((receipt) => console.log(receipt))
+      .catch((e) => {
+        const parsedError = getParsedEthersError(e);
+        console.log(parsedError);
+      });
   }
 
   render() {
@@ -117,7 +131,11 @@ class App extends Component {
             <div style={{ padding: "0 10px" }} onClick={this.listProducts}>
               List all
             </div>
-            <div style={{ padding: "0 10px" }} onClick={this.purchaseProduct}>
+            <div
+              style={{ padding: "0 10px" }}
+              // hardcoded product id and price
+              onClick={() => this.purchaseProduct(3, 20)}
+            >
               purchase
             </div>
             <main role="main" className="col-lf-12 d-flex">
